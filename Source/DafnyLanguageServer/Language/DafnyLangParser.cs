@@ -39,6 +39,7 @@ namespace Microsoft.Dafny.LanguageServer.Language {
 
       var beforeParsing = DateTime.Now;
       try {
+        Console.WriteLine("TRUE ENTRY POINT FOR RESOLVE" );
         return programParser.ParseFiles(compilation.Project.ProjectName, compilation.RootFiles, compilation.Reporter, cancellationToken);
       }
       finally {

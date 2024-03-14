@@ -9,6 +9,7 @@ namespace Microsoft.Dafny;
 
 public abstract class Type : TokenNode {
   public static readonly BoolType Bool = new BoolType();
+  public static readonly HoleType Hole = new HoleType();
   public static readonly CharType Char = new CharType();
   public static readonly IntType Int = new IntType();
   public static readonly RealType Real = new RealType();
@@ -1787,6 +1788,15 @@ public class BoolType : BasicType {
   }
   public override bool Equals(Type that, bool keepConstraints = false) {
     return that.IsBoolType;
+  }
+}
+public class HoleType : BasicType {
+  [System.Diagnostics.Contracts.Pure]
+  public override string TypeName(DafnyOptions options, ModuleDefinition context, bool parseAble) {
+    return "hole";
+  }
+  public override bool Equals(Type that, bool keepConstraints = false) {
+    return true;
   }
 }
 

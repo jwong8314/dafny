@@ -50,6 +50,8 @@ public class ProgramParser {
       builtIns,
       errorReporter, compilation
     );
+    Console.WriteLine("Parsing " );
+
 
     foreach (var dafnyFile in files) {
       cancellationToken.ThrowIfCancellationRequested();
@@ -111,6 +113,7 @@ public class ProgramParser {
     Uri uri,
     CancellationToken cancellationToken) {
     try {
+      Console.WriteLine("ParseFileWithErrorHandling HERE");
       return ParseFile(options, getContent, uri, cancellationToken);
     } catch (IOException e) {
       if (origin == null) {
@@ -279,7 +282,10 @@ public class ProgramParser {
   private static DfyParseResult ParseFile(DafnyOptions options, string /*!*/ content, Uri /*!*/ uri, CancellationToken cancellationToken) {
     var batchErrorReporter = new BatchErrorReporter(options);
     Parser parser = SetupParser(content, uri, batchErrorReporter, cancellationToken);
+    Console.WriteLine("Parser about to be run");
     parser.Parse();
+    Console.WriteLine("Parser finished");
+
 
     if (parser.theModule.DefaultClass.Members.Count == 0 && parser.theModule.Includes.Count == 0 && !parser.theModule.SourceDecls.Any()
         && (parser.theModule.PrefixNamedModules == null || parser.theModule.PrefixNamedModules.Count == 0)) {

@@ -197,6 +197,7 @@ NoGhost - disable printing of functions, ghost methods, and proof
     }
 
     public void PrintProgram(Program prog, bool afterResolver) {
+      Console.WriteLine("Inside PrintProgram");
       Contract.Requires(prog != null);
       this.afterResolver = afterResolver;
       if (options.ShowEnv != Bpl.ExecutionEngineOptions.ShowEnvironment.Never) {

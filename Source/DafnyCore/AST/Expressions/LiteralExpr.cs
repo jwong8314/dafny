@@ -115,6 +115,19 @@ public class CharLiteralExpr : LiteralExpr, ICloneable<CharLiteralExpr> {
     return new CharLiteralExpr(cloner, this);
   }
 }
+public class HoleExpr : LiteralExpr, ICloneable<HoleExpr> {
+  public HoleExpr(IToken tok, string s)
+    : base(tok, s) {
+    Contract.Requires(s != null);
+  }
+
+  public HoleExpr(Cloner cloner, HoleExpr original) : base(cloner, original) {
+  }
+
+  public new HoleExpr Clone(Cloner cloner) {
+    return new HoleExpr(cloner, this);
+  }
+}
 
 public class StringLiteralExpr : LiteralExpr, ICloneable<StringLiteralExpr> {
   public readonly bool IsVerbatim;
@@ -133,6 +146,7 @@ public class StringLiteralExpr : LiteralExpr, ICloneable<StringLiteralExpr> {
   }
 }
 
+
 /// <summary>
 /// A NegationExpression e represents the value -e and is syntactic shorthand
 /// for 0-e (for integers) or 0.0-e (for reals).
@@ -147,6 +161,8 @@ public class NegationExpression : ConcreteSyntaxExpression, ICloneable<NegationE
   public NegationExpression(Cloner cloner, NegationExpression original) : base(cloner, original) {
     E = cloner.CloneExpr(original.E);
   }
+
+  
 
   public NegationExpression(IToken tok, Expression e)
     : base(tok) {

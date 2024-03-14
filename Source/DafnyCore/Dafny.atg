@@ -144,6 +144,7 @@ TOKENS
   by = "by".
   in = "in".
   decreases = "decreases".
+  hole = "??".
   invariant = "invariant".
   function = "function".
   predicate = "predicate".
@@ -3654,6 +3655,7 @@ LiteralExpression<out Expression e>
   .)
   ( "false"                                    (. e = new LiteralExpr(t, false); .)
   | "true"                                     (. e = new LiteralExpr(t, true); .)
+  | "??"                                     (. e = new HoleExpr(t, "??"); .)
   | "null"                                     (. e = new LiteralExpr(t); .)
   | Nat<out n>                                 (. e = new LiteralExpr(t, n); .)
   | Dec<out d>                                 (. e = new LiteralExpr(t, d); .)
