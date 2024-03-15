@@ -462,7 +462,9 @@ namespace Microsoft.Dafny {
           } else if (e is StringLiteralExpr) {
             e.Type = Type.String();
             ResolveType(e.tok, e.Type, resolutionContext, ResolveTypeOptionEnum.DontInfer, null);
-          } else {
+
+          } else if (e is HoleExpr) {e.Type = Type.Hole;}
+          else {
             Contract.Assert(false); throw new cce.UnreachableException();  // unexpected literal type
           }
         }
@@ -882,39 +884,46 @@ namespace Microsoft.Dafny {
 
           case BinaryExpr.Opcode.Add: {
               expr.Type = new InferredTypeProxy();
-              AddXConstraint(e.tok, "Plussable", expr.Type, "type of + must be of a numeric type, a bitvector type, ORDINAL, char, a sequence type, or a set-like or map-like type (instead got {0})");
-              ConstrainSubtypeRelation(expr.Type, e.E0.Type, expr.tok, "type of left argument to + ({0}) must agree with the result type ({1})", e.E0.Type, expr.Type);
-              ConstrainSubtypeRelation(expr.Type, e.E1.Type, expr.tok, "type of right argument to + ({0}) must agree with the result type ({1})", e.E1.Type, expr.Type);
+              if (e.E0.Type != Type.Hole && e.E1.Type != Type.Hole){
+                AddXConstraint(e.tok, "Plussable", expr.Type, "type of + must be of a numeric type, a bitvector type, ORDINAL, char, a sequence type, or a set-like or map-like type (instead got {0})");
+              
+                ConstrainSubtypeRelation(expr.Type, e.E0.Type, expr.tok, "type of left argument to + ({0}) must agree with the result type ({1})", e.E0.Type, expr.Type);
+                ConstrainSubtypeRelation(expr.Type, e.E1.Type, expr.tok, "type of right argument to + ({0}) must agree with the result type ({1})", e.E1.Type, expr.Type);
+              }
             }
             break;
 
           case BinaryExpr.Opcode.Sub: {
               expr.Type = new InferredTypeProxy();
-              AddXConstraint(e.tok, "Minusable", expr.Type, "type of - must be of a numeric type, bitvector type, ORDINAL, char, or a set-like or map-like type (instead got {0})");
-              ConstrainSubtypeRelation(expr.Type, e.E0.Type, expr.tok, "type of left argument to - ({0}) must agree with the result type ({1})", e.E0.Type, expr.Type);
-              // The following handles map subtraction, but does not in an unfortunately restrictive way.
-              // First, it would be nice to delay the decision of it this is a map subtraction or not. This settles
-              // for the simple way to decide based on what is currently known about the result type, which is also
-              // done, for example, when deciding if "<" denotes rank ordering on datatypes.
-              // Second, for map subtraction, it would be nice to allow the right-hand operand to be either a set or
-              // an iset. That would also lead to further complexity in the code, so this code restricts the right-hand
-              // operand to be a set.
-              var eType = PartiallyResolveTypeForMemberSelection(expr.tok, expr.Type).AsMapType;
-              if (eType != null) {
-                // allow "map - set == map"
-                var expected = new SetType(true, eType.Domain);
-                ConstrainSubtypeRelation(expected, e.E1.Type, expr.tok, "map subtraction expects right-hand operand to have type {0} (instead got {1})", expected, e.E1.Type);
-              } else {
-                ConstrainSubtypeRelation(expr.Type, e.E1.Type, expr.tok, "type of right argument to - ({0}) must agree with the result type ({1})", e.E1.Type, expr.Type);
+              if (e.E0.Type != Type.Hole && e.E1.Type != Type.Hole){
+                AddXConstraint(e.tok, "Minusable", expr.Type, "type of - must be of a numeric type, bitvector type, ORDINAL, char, or a set-like or map-like type (instead got {0})");
+                ConstrainSubtypeRelation(expr.Type, e.E0.Type, expr.tok, "type of left argument to - ({0}) must agree with the result type ({1})", e.E0.Type, expr.Type);
+                // The following handles map subtraction, but does not in an unfortunately restrictive way.
+                // First, it would be nice to delay the decision of it this is a map subtraction or not. This settles
+                // for the simple way to decide based on what is currently known about the result type, which is also
+                // done, for example, when deciding if "<" denotes rank ordering on datatypes.
+                // Second, for map subtraction, it would be nice to allow the right-hand operand to be either a set or
+                // an iset. That would also lead to further complexity in the code, so this code restricts the right-hand
+                // operand to be a set.
+                var eType = PartiallyResolveTypeForMemberSelection(expr.tok, expr.Type).AsMapType;
+                if (eType != null) {
+                  // allow "map - set == map"
+                  var expected = new SetType(true, eType.Domain);
+                  ConstrainSubtypeRelation(expected, e.E1.Type, expr.tok, "map subtraction expects right-hand operand to have type {0} (instead got {1})", expected, e.E1.Type);
+                } else {
+                  ConstrainSubtypeRelation(expr.Type, e.E1.Type, expr.tok, "type of right argument to - ({0}) must agree with the result type ({1})", e.E1.Type, expr.Type);
+                }
               }
             }
             break;
 
           case BinaryExpr.Opcode.Mul: {
               expr.Type = new InferredTypeProxy();
-              AddXConstraint(e.tok, "Mullable", expr.Type, "type of * must be of a numeric type, bitvector type, or a set-like type (instead got {0})");
-              ConstrainSubtypeRelation(expr.Type, e.E0.Type, expr.tok, "type of left argument to * ({0}) must agree with the result type ({1})", e.E0.Type, expr.Type);
-              ConstrainSubtypeRelation(expr.Type, e.E1.Type, expr.tok, "type of right argument to * ({0}) must agree with the result type ({1})", e.E1.Type, expr.Type);
+              if (e.E0.Type != Type.Hole && e.E1.Type != Type.Hole){
+                AddXConstraint(e.tok, "Mullable", expr.Type, "type of * must be of a numeric type, bitvector type, or a set-like type (instead got {0})");
+                ConstrainSubtypeRelation(expr.Type, e.E0.Type, expr.tok, "type of left argument to * ({0}) must agree with the result type ({1})", e.E0.Type, expr.Type);
+                ConstrainSubtypeRelation(expr.Type, e.E1.Type, expr.tok, "type of right argument to * ({0}) must agree with the result type ({1})", e.E1.Type, expr.Type);
+              }
             }
             break;
 
@@ -928,24 +937,28 @@ namespace Microsoft.Dafny {
 
           case BinaryExpr.Opcode.Div:
             expr.Type = new InferredTypeProxy();
-            AddXConstraint(expr.tok, "NumericOrBitvector", expr.Type, "arguments to " + BinaryExpr.OpcodeString(e.Op) + " must be numeric or bitvector types (got {0})");
-            ConstrainSubtypeRelation(expr.Type, e.E0.Type,
-              expr, "type of left argument to " + BinaryExpr.OpcodeString(e.Op) + " ({0}) must agree with the result type ({1})",
-              e.E0.Type, expr.Type);
-            ConstrainSubtypeRelation(expr.Type, e.E1.Type,
-              expr, "type of right argument to " + BinaryExpr.OpcodeString(e.Op) + " ({0}) must agree with the result type ({1})",
-              e.E1.Type, expr.Type);
+            if (e.E0.Type != Type.Hole && e.E1.Type != Type.Hole){
+              AddXConstraint(expr.tok, "NumericOrBitvector", expr.Type, "arguments to " + BinaryExpr.OpcodeString(e.Op) + " must be numeric or bitvector types (got {0})");
+              ConstrainSubtypeRelation(expr.Type, e.E0.Type,
+                expr, "type of left argument to " + BinaryExpr.OpcodeString(e.Op) + " ({0}) must agree with the result type ({1})",
+                e.E0.Type, expr.Type);
+              ConstrainSubtypeRelation(expr.Type, e.E1.Type,
+                expr, "type of right argument to " + BinaryExpr.OpcodeString(e.Op) + " ({0}) must agree with the result type ({1})",
+                e.E1.Type, expr.Type);
+            }
             break;
 
           case BinaryExpr.Opcode.Mod:
             expr.Type = new InferredTypeProxy();
-            AddXConstraint(expr.tok, "IntLikeOrBitvector", expr.Type, "arguments to " + BinaryExpr.OpcodeString(e.Op) + " must be integer-numeric or bitvector types (got {0})");
-            ConstrainSubtypeRelation(expr.Type, e.E0.Type,
-              expr, "type of left argument to " + BinaryExpr.OpcodeString(e.Op) + " ({0}) must agree with the result type ({1})",
-              e.E0.Type, expr.Type);
-            ConstrainSubtypeRelation(expr.Type, e.E1.Type,
-              expr, "type of right argument to " + BinaryExpr.OpcodeString(e.Op) + " ({0}) must agree with the result type ({1})",
-              e.E1.Type, expr.Type);
+            if (e.E0.Type != Type.Hole && e.E1.Type != Type.Hole){
+              AddXConstraint(expr.tok, "IntLikeOrBitvector", expr.Type, "arguments to " + BinaryExpr.OpcodeString(e.Op) + " must be integer-numeric or bitvector types (got {0})");
+              ConstrainSubtypeRelation(expr.Type, e.E0.Type,
+                expr, "type of left argument to " + BinaryExpr.OpcodeString(e.Op) + " ({0}) must agree with the result type ({1})",
+                e.E0.Type, expr.Type);
+              ConstrainSubtypeRelation(expr.Type, e.E1.Type,
+                expr, "type of right argument to " + BinaryExpr.OpcodeString(e.Op) + " ({0}) must agree with the result type ({1})",
+                e.E1.Type, expr.Type);
+            }
             break;
 
           case BinaryExpr.Opcode.BitwiseAnd:
