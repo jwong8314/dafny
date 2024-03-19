@@ -1903,6 +1903,7 @@ req, reads, mod, ens, dec, ref decAttrs, ref modAttrs, ref readsAttrs, caption, 
 		EquivExpression(out e, allowLemma, allowLambda, allowBitwiseOps);
 		if (SemiFollowsCall(allowLemma, e)) {
 			Expect(32);
+			Console.WriteLine("INSIDE SEMI FOLLOWS CALL:");
 			semiToken = t; 
 			Expression(out e0, allowLemma, allowLambda);
 			var startToken = e.StartToken;
@@ -2822,8 +2823,39 @@ bool allowLambda, bool allowWild) {
 		byMethodTok = null; byMethodBody = null;
 		
 		Expect(84);
-		bodyStart = t; 
+		bodyStart = t;
+		var errorCount_curr = errors.ErrorCount; 
+		
 		Expression(out e, true, true);
+		if (errorCount_curr != errors.ErrorCount){
+			Console.WriteLine("error found in parsing expression");
+			errors.ErrorCount = errorCount_curr;
+
+					
+			int nesting = 1; 
+		
+			if (la.kind != 0){
+				Console.WriteLine("EOF found unexpectedly");
+			}
+			while (nesting != 0 && la.kind != 0 && la.val != "}"){
+				Console.WriteLine("TOKEN: {0} {1}", t.val, la.val);
+				Get(); // If there's an error ( basically it's a BlockStmt)
+				if (la.kind == 84){
+					Console.WriteLine("Increment nesting");
+					nesting = nesting + 1; 
+				}
+				if (la.kind == 85){
+					nesting = nesting - 1;
+					Console.WriteLine("Decrement nesting"); 
+				}
+			}
+			e = new HoleExpr(t, "The function doesn't have an expression. Most likely it's a method body intead of function body.");
+			Console.WriteLine("Expect 85 @ Line 2842");
+		}
+		else if (e is HoleExpr){
+			Console.WriteLine ("hole found");
+
+		}
 		Expect(85);
 		bodyEnd = t; 
 		if (la.kind == 42) {

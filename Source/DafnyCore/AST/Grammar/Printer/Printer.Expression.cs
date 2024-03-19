@@ -437,7 +437,9 @@ namespace Microsoft.Dafny {
       }
       */
       if (expr is HoleExpr){ 
-        wr.Write("??");
+        HoleExpr e = (HoleExpr) expr;
+        var str = (string)e.Value;
+        wr.Write($"??<{(string)e.Value}>??");
       } else if (expr is StaticReceiverExpr) {
         StaticReceiverExpr e = (StaticReceiverExpr)expr;
         wr.Write(e.Type);
